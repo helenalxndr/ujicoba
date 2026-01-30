@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
+from streamlit_calendar import calendar
 
 # =========================
 # KONFIGURASI STREAMLIT
@@ -13,6 +14,7 @@ st.set_page_config(
 )
 
 st.title("🌱 Kalender Tanam Singkong Berbasis LSTM & RBS")
+st.caption("Prediksi curah hujan harian menggunakan LSTM dan rekomendasi aktivitas berbasis Rule-Based System")
 
 # =========================
 # LOAD DATA & MODEL
@@ -20,12 +22,12 @@ st.title("🌱 Kalender Tanam Singkong Berbasis LSTM & RBS")
 @st.cache_resource
 def load_all():
     df = pd.read_csv("data.csv")
-    df['index'] = pd.to_datetime(df['index'])
+    df["index"] = pd.to_datetime(df["index"])
 
-    model = load_model("model_lstm.h5")
+    model = load_model("model_lstm.h5", compile=False)
 
     scaler = MinMaxScaler()
-    scaler.fit(df[['curah_hujan_mm_corrected']])
+    scaler.fit(df[["curah_hujan_mm_corrected"]])
 
     return df, model, scaler
 
@@ -33,7 +35,7 @@ def load_all():
 df_all, model, scaler = load_all()
 
 # =========================
-# RBS SINGKONG
+# RULE BASED SYSTEM
 # =========================
 def rbs_singkong_final(hujan_mm, hst):
 
@@ -83,7 +85,7 @@ def forecast_lstm(model, last_window, n_days=30):
 # =========================
 st.sidebar.header("⚙️ Pengaturan")
 
-kecamatan_list = sorted(df_all['kecamatan'].unique())
+kecamatan_list = sorted(df_all["kecamatan"].unique())
 kecamatan = st.sidebar.selectbox("Pilih Kecamatan", kecamatan_list)
 
 tanggal_mulai = st.sidebar.date_input(
@@ -94,19 +96,23 @@ tanggal_mulai = st.sidebar.date_input(
 # =========================
 # PROSES DATA
 # =========================
-df_kec = df_all[df_all['kecamatan'] == kecamatan].sort_values('index')
+df_kec = df_all[df_all["kecamatan"] == kecamatan].sort_values("index")
 
-last_30 = df_kec['curah_hujan_mm_corrected'].iloc[-30:].values
+if len(df_kec) < 30:
+    st.warning("⚠️ Data historis kurang dari 30 hari, prediksi tidak dapat dilakukan.")
+    st.stop()
+
+last_30 = df_kec["curah_hujan_mm_corrected"].iloc[-30:].values
 last_30_scaled = scaler.transform(last_30.reshape(-1, 1)).flatten()
 
 pred_scaled = forecast_lstm(model, last_30_scaled, 30)
 pred_mm = scaler.inverse_transform(pred_scaled.reshape(-1, 1)).flatten()
 
-tanggal = pd.date_range(start=tanggal_mulai, periods=30, freq='D')
+tanggal = pd.date_range(start=tanggal_mulai, periods=30, freq="D")
 
 df_dashboard = pd.DataFrame({
     "Tanggal": tanggal,
-    "Prediksi Hujan (mm)": pred_mm,
+    "Prediksi Hujan (mm)": pred_mm
 })
 
 df_dashboard["HST"] = range(1, 31)
@@ -119,9 +125,24 @@ df_dashboard["Aktivitas"] = df_dashboard.apply(
 )
 
 # =========================
+# WARNA AKTIVITAS
+# =========================
+def aktivitas_color(aktivitas):
+    if aktivitas == "Penanaman":
+        return "#2ecc71"
+    if "Pemupukan" in aktivitas:
+        return "#f1c40f"
+    if "Hama" in aktivitas:
+        return "#e74c3c"
+    if aktivitas == "Panen":
+        return "#8e44ad"
+    return "#3498db"
+
+
+# =========================
 # RINGKASAN
 # =========================
-st.subheader("📊 Ringkasan Bulanan")
+st.subheader("📊 Ringkasan Kalender Tanam")
 
 col1, col2, col3 = st.columns(3)
 
@@ -141,14 +162,53 @@ col3.metric(
 )
 
 # =========================
-# TABEL KALENDER
+# KALENDER INTERAKTIF
 # =========================
-st.subheader("🗓️ Kalender Tanam (30 Hari)")
+st.subheader("🗓️ Kalender Tanam Singkong (Interaktif)")
 
-st.dataframe(
-    df_dashboard,
-    use_container_width=True
+events = []
+for _, row in df_dashboard.iterrows():
+    events.append({
+        "title": row["Aktivitas"],
+        "start": row["Tanggal"].strftime("%Y-%m-%d"),
+        "end": row["Tanggal"].strftime("%Y-%m-%d"),
+        "color": aktivitas_color(row["Aktivitas"]),
+        "extendedProps": {
+            "HST": row["HST"],
+            "Hujan": f"{row['Prediksi Hujan (mm)']:.2f} mm"
+        }
+    })
+
+calendar_options = {
+    "initialView": "dayGridMonth",
+    "locale": "id",
+    "height": 650,
+    "headerToolbar": {
+        "left": "prev,next today",
+        "center": "title",
+        "right": "dayGridMonth,timeGridWeek"
+    }
+}
+
+state = calendar(
+    events=events,
+    options=calendar_options,
+    key="kalender_singkong"
 )
+
+# =========================
+# DETAIL EVENT
+# =========================
+if state.get("eventClick"):
+    e = state["eventClick"]["event"]
+    st.info(
+        f"""
+        📅 **Tanggal**: {e['start']}
+        🌱 **Aktivitas**: {e['title']}
+        📊 **Curah Hujan**: {e['extendedProps']['Hujan']}
+        ⏳ **HST**: {e['extendedProps']['HST']}
+        """
+    )
 
 # =========================
 # GRAFIK HUJAN
