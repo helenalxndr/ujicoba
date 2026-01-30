@@ -17,6 +17,15 @@ st.title("🌱 Kalender Tanam Singkong Berbasis LSTM & RBS")
 st.caption("Prediksi curah hujan harian menggunakan LSTM dan rekomendasi aktivitas berbasis Rule-Based System")
 
 # =========================
+# SESSION STATE (INIT)
+# =========================
+if "tanggal_mulai" not in st.session_state:
+    st.session_state["tanggal_mulai"] = pd.to_datetime("2024-01-01")
+
+if "tanggal_dipilih" not in st.session_state:
+    st.session_state["tanggal_dipilih"] = False
+
+# =========================
 # LOAD DATA & MODEL
 # =========================
 @st.cache_resource
@@ -81,12 +90,6 @@ def forecast_lstm(model, last_window, n_days=30):
 
 
 # =========================
-# SESSION STATE (TANGGAL)
-# =========================
-if "tanggal_mulai" not in st.session_state:
-    st.session_state["tanggal_mulai"] = pd.to_datetime("2024-01-01")
-
-# =========================
 # SIDEBAR
 # =========================
 st.sidebar.header("⚙️ Pengaturan")
@@ -94,10 +97,14 @@ st.sidebar.header("⚙️ Pengaturan")
 kecamatan_list = sorted(df_all["kecamatan"].unique())
 kecamatan = st.sidebar.selectbox("Pilih Kecamatan", kecamatan_list)
 
+def on_tanggal_change():
+    st.session_state["tanggal_dipilih"] = True
+
 tanggal_mulai = st.sidebar.date_input(
     "Tanggal Mulai Kalender",
     value=st.session_state["tanggal_mulai"],
-    key="tanggal_mulai"
+    key="tanggal_mulai",
+    on_change=on_tanggal_change
 )
 
 # =========================
@@ -206,9 +213,9 @@ state = calendar(
 )
 
 # =========================
-# SINKRON ARROW ↔ SIDEBAR
+# SINKRON ARROW (SETELAH TANGGAL DIPILIH)
 # =========================
-if state.get("datesSet"):
+if state.get("datesSet") and st.session_state["tanggal_dipilih"]:
     start_date = pd.to_datetime(state["datesSet"]["start"]).date()
     st.session_state["tanggal_mulai"] = start_date.replace(day=1)
 
