@@ -81,6 +81,12 @@ def forecast_lstm(model, last_window, n_days=30):
 
 
 # =========================
+# SESSION STATE (TANGGAL)
+# =========================
+if "tanggal_mulai" not in st.session_state:
+    st.session_state["tanggal_mulai"] = pd.to_datetime("2024-01-01")
+
+# =========================
 # SIDEBAR
 # =========================
 st.sidebar.header("⚙️ Pengaturan")
@@ -90,7 +96,8 @@ kecamatan = st.sidebar.selectbox("Pilih Kecamatan", kecamatan_list)
 
 tanggal_mulai = st.sidebar.date_input(
     "Tanggal Mulai Kalender",
-    value=pd.to_datetime("2024-01-01")
+    value=st.session_state["tanggal_mulai"],
+    key="tanggal_mulai"
 )
 
 # =========================
@@ -99,7 +106,7 @@ tanggal_mulai = st.sidebar.date_input(
 df_kec = df_all[df_all["kecamatan"] == kecamatan].sort_values("index")
 
 if len(df_kec) < 30:
-    st.warning("⚠️ Data historis kurang dari 30 hari, prediksi tidak dapat dilakukan.")
+    st.warning("⚠️ Data historis kurang dari 30 hari.")
     st.stop()
 
 last_30 = df_kec["curah_hujan_mm_corrected"].iloc[-30:].values
@@ -108,7 +115,11 @@ last_30_scaled = scaler.transform(last_30.reshape(-1, 1)).flatten()
 pred_scaled = forecast_lstm(model, last_30_scaled, 30)
 pred_mm = scaler.inverse_transform(pred_scaled.reshape(-1, 1)).flatten()
 
-tanggal = pd.date_range(start=tanggal_mulai, periods=30, freq="D")
+tanggal = pd.date_range(
+    start=st.session_state["tanggal_mulai"],
+    periods=30,
+    freq="D"
+)
 
 df_dashboard = pd.DataFrame({
     "Tanggal": tanggal,
@@ -117,10 +128,7 @@ df_dashboard = pd.DataFrame({
 
 df_dashboard["HST"] = range(1, 31)
 df_dashboard["Aktivitas"] = df_dashboard.apply(
-    lambda x: rbs_singkong_final(
-        x["Prediksi Hujan (mm)"],
-        x["HST"]
-    ),
+    lambda x: rbs_singkong_final(x["Prediksi Hujan (mm)"], x["HST"]),
     axis=1
 )
 
@@ -181,6 +189,7 @@ for _, row in df_dashboard.iterrows():
 
 calendar_options = {
     "initialView": "dayGridMonth",
+    "initialDate": st.session_state["tanggal_mulai"].strftime("%Y-%m-%d"),
     "locale": "id",
     "height": 650,
     "headerToolbar": {
@@ -195,6 +204,13 @@ state = calendar(
     options=calendar_options,
     key="kalender_singkong"
 )
+
+# =========================
+# SINKRON ARROW ↔ SIDEBAR
+# =========================
+if state.get("datesSet"):
+    start_date = pd.to_datetime(state["datesSet"]["start"]).date()
+    st.session_state["tanggal_mulai"] = start_date.replace(day=1)
 
 # =========================
 # DETAIL EVENT
