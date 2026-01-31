@@ -6,6 +6,15 @@ from components.summary_cards import render_summary
 from utils.data_loader import load_all
 from utils.forecast import build_dashboard_df
 
+st.set_page_config(
+    page_title="Kalender Tanam Singkong",
+    layout="wide"
+)
+
+st.title("📅 Kalender Tanam Singkong")
+st.write("Halaman kalender berhasil dimuat.")
+
+
 df_all, model, scaler = load_all()
 
 kecamatan, tanggal_acuan = render_header(df_all)
