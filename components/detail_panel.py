@@ -48,7 +48,7 @@ def render_detail_panel(df_dashboard, calendar_state):
 
     st.markdown(f"""
     **🗓️ Tanggal:** {row['Tanggal'].strftime('%d %B %Y')}  
-    **🌧️ Prediksi Hujan:** {row['Prediksi_Hujan']:.2f} mm  
+    **🌧️ Prediksi Hujan:** {row['Prediksi_Hujan (mm)']:.2f} mm  
     **🌱 HST:** {row['HST']}  
     **📋 Aktivitas:** **{row['Aktivitas']}**
     """)
