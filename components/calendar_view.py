@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_calendar import calendar
+import pandas as pd
 
 def render_calendar(df_dashboard, tanggal_acuan):
     events = [
@@ -26,5 +27,14 @@ def render_calendar(df_dashboard, tanggal_acuan):
         },
         key="kalender"
     )
+
+    # 🔥 INI BAGIAN PENTING
+    if state.get("datesSet"):
+        new_date = pd.to_datetime(
+            state["datesSet"]["start"],
+            utc=True
+        ).tz_convert("Asia/Jakarta").date().replace(day=1)
+
+        st.session_state["tanggal_acuan"] = new_date
 
     return state
