@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+st.write("DEBUG calendar_state:", calendar_state)
 def render_detail_panel(df_dashboard, calendar_state):
     st.subheader("📌 Detail Aktivitas")
 
@@ -8,23 +9,22 @@ def render_detail_panel(df_dashboard, calendar_state):
         st.info("Klik tanggal atau aktivitas di kalender.")
         return
 
-    selected_date = None
+    st.write("DEBUG callback:", calendar_state.get("callback"))
 
-    # ✅ 1. PRIORITAS: EVENT CLICK (klik bar aktivitas)
-    if "eventClick" in calendar_state:
+    selected_date = None
+    callback = calendar_state.get("callback")
+
+    if callback == "eventClick":
         selected_date = pd.to_datetime(
             calendar_state["eventClick"]["event"]["start"]
         ).date()
 
-    # ✅ 2. DATE CLICK (jika aktif)
-    elif "dateClick" in calendar_state:
+    elif callback == "dateClick":
         selected_date = pd.to_datetime(
             calendar_state["dateClick"]["date"]
         ).date()
 
-    # ✅ 3. SELECT (klik sel kalender)
-    elif "select" in calendar_state:
-        # 🔥 start UTC → convert ke tanggal lokal
+    elif callback == "select":
         selected_date = (
             pd.to_datetime(calendar_state["select"]["start"], utc=True)
             .tz_convert("Asia/Jakarta")
@@ -32,10 +32,9 @@ def render_detail_panel(df_dashboard, calendar_state):
         )
 
     if not selected_date:
-        st.info("Klik tanggal atau aktivitas di kalender.")
+        st.warning("Tanggal tidak terdeteksi dari kalender.")
         return
 
-    # 🔍 Cari data
     data_hari = df_dashboard[
         df_dashboard["Tanggal"].dt.date == selected_date
     ]
@@ -48,7 +47,7 @@ def render_detail_panel(df_dashboard, calendar_state):
 
     st.markdown(f"""
     **🗓️ Tanggal:** {row['Tanggal'].strftime('%d %B %Y')}  
-    **🌧️ Prediksi Hujan:** {row['Prediksi_Hujan (mm)']:.2f} mm  
+    **🌧️ Prediksi Hujan:** {row['Prediksi Hujan (mm)']:.2f} mm  
     **🌱 HST:** {row['HST']}  
     **📋 Aktivitas:** **{row['Aktivitas']}**
     """)
