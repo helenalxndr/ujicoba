@@ -87,4 +87,4 @@ with col_detail:
 # SUMMARY
 # ===============================
 render_summary(df_dashboard)
-
+st.write(calendar_state)
