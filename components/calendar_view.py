@@ -20,9 +20,9 @@ def render_calendar(df_dashboard, tanggal_acuan):
             "locale": "id",
             "height": 650,
             "headerToolbar": {
-                "left": "prev,next today",
+                "left": ""
                 "center": "title",
-                "right": "dayGridMonth"
+                "right": ""
             }
         },
         key="kalender"
