@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-st.write("DEBUG calendar_state:", calendar_state)
 def render_detail_panel(df_dashboard, calendar_state):
     st.subheader("📌 Detail Aktivitas")
 
