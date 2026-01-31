@@ -87,3 +87,5 @@ with col_detail:
 # SUMMARY
 # ===============================
 render_summary(df_dashboard)
+st.write("DEBUG calendar_state:", calendar_state)
+
