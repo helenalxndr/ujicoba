@@ -8,5 +8,5 @@ st.set_page_config(
 with open("assets/style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.markdown("🌱 Kalender Tanam Singkong")
-st.caption("Silakan buka halaman **Kalender** melalui menu Pages.")
+st.title("🌱 Kalender Tanam Singkong")
+st.info("Silakan buka halaman **Kalender** melalui menu Pages di kiri atas.")
