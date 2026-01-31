@@ -1,10 +1,16 @@
+import streamlit as st
+import pandas as pd
+
 def render_detail_panel(df_dashboard, calendar_state):
+    st.subheader("📌 Detail Aktivitas")
 
     if not calendar_state:
+        st.info("Klik salah satu tanggal di kalender untuk melihat detail.")
         return
 
-    #SATU-SATUNYA YANG BENAR
+    # 🔥 SATU-SATUNYA YANG BENAR
     if "event" not in calendar_state:
+        st.info("Klik salah satu tanggal di kalender untuk melihat detail.")
         return
 
     selected_date = pd.to_datetime(
@@ -16,13 +22,14 @@ def render_detail_panel(df_dashboard, calendar_state):
     ]
 
     if data_hari.empty:
-        st.info("Tidak ada aktivitas pada tanggal ini")
+        st.warning("Tidak ada data untuk tanggal ini.")
         return
 
     row = data_hari.iloc[0]
 
-    st.markdown("### 📌 Detail Aktivitas")
-    st.write(f"📅 Tanggal: {row['Tanggal'].strftime('%d %B %Y')}")
-    st.write(f"🌧️ Prediksi Hujan: {row['Prediksi_Hujan']:.2f} mm")
-    st.write(f"🌱 HST: {row['HST']}")
-    st.write(f"📋 Aktivitas: {row['Aktivitas']}")
+    st.markdown(f"""
+    **🗓️ Tanggal:** {row['Tanggal'].strftime('%d %B %Y')}  
+    **🌧️ Prediksi Hujan:** {row['Prediksi_Hujan']:.2f} mm  
+    **🌱 HST:** {row['HST']}  
+    **📋 Aktivitas:** **{row['Aktivitas']}**
+    """)
