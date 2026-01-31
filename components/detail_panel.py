@@ -4,11 +4,15 @@ import pandas as pd
 def render_detail_panel(df_dashboard, calendar_state):
     st.subheader("📌 Detail Aktivitas")
 
-    if not calendar_state or "dateClick" not in calendar_state:
-        st.info("Klik salah satu tanggal di kalender untuk melihat detail.")
+    if not calendar_state:
+        st.info("Klik salah satu tanggal di kalender.")
         return
 
-    # 🔥 INI YANG BENAR
+    if "dateClick" not in calendar_state:
+        st.info("Klik salah satu tanggal di kalender.")
+        return
+
+    # 🔥 FIELD YANG BENAR
     selected_date = pd.to_datetime(
         calendar_state["dateClick"]["dateStr"]
     ).date()
