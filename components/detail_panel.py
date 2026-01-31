@@ -5,16 +5,17 @@ def render_detail_panel(df_dashboard, calendar_state):
     st.subheader("📌 Detail Aktivitas")
 
     if not calendar_state:
-        st.info("Klik salah satu tanggal di kalender.")
+        st.info("Klik aktivitas di kalender untuk melihat detail.")
         return
 
-    if "dateClick" not in calendar_state:
-        st.info("Klik salah satu tanggal di kalender.")
+    # 🔥 KUNCI UTAMA
+    if "eventClick" not in calendar_state:
+        st.info("Klik bar aktivitas di kalender.")
         return
 
-    # 🔥 FIELD YANG BENAR
+    # 🔥 AMBIL TANGGAL DARI EVENT
     selected_date = pd.to_datetime(
-        calendar_state["dateClick"]["dateStr"]
+        calendar_state["eventClick"]["event"]["start"]
     ).date()
 
     data_hari = df_dashboard[
@@ -22,7 +23,7 @@ def render_detail_panel(df_dashboard, calendar_state):
     ]
 
     if data_hari.empty:
-        st.warning("Tidak ada aktivitas pada tanggal ini.")
+        st.warning("Tidak ada data aktivitas untuk tanggal ini.")
         return
 
     row = data_hari.iloc[0]
