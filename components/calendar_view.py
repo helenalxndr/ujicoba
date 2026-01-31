@@ -1,13 +1,15 @@
+import streamlit as st
 from streamlit_calendar import calendar
-from utils.helpers import warna_aktivitas
 
-def render_calendar(df, tanggal_acuan):
-
-    events = [{
-        "title": row["Aktivitas"],
-        "start": row["Tanggal"].strftime("%Y-%m-%d"),
-        "color": warna_aktivitas(row["Aktivitas"])
-    } for _, row in df.iterrows()]
+def render_calendar(df_dashboard, tanggal_acuan):
+    events = [
+        {
+            "title": row["Aktivitas"],
+            "start": row["Tanggal"].strftime("%Y-%m-%d"),
+            "color": "#2ecc71" if row["Aktivitas"] == "Penanaman" else "#f1c40f"
+        }
+        for _, row in df_dashboard.iterrows()
+    ]
 
     state = calendar(
         events=events,
@@ -15,7 +17,12 @@ def render_calendar(df, tanggal_acuan):
             "initialView": "dayGridMonth",
             "initialDate": tanggal_acuan.strftime("%Y-%m-%d"),
             "locale": "id",
-            "height": 650
+            "height": 650,
+            "headerToolbar": {
+                "left": "prev,next today",
+                "center": "title",
+                "right": "dayGridMonth"
+            }
         },
         key="kalender"
     )
