@@ -3,15 +3,21 @@ from streamlit_calendar import calendar
 import pandas as pd
 
 def render_calendar(df_dashboard, tanggal_acuan):
-    events = [
-        {
+    # =========================
+    # Build calendar events
+    # =========================
+    events = []
+    for _, row in df_dashboard.iterrows():
+        events.append({
             "title": row["Aktivitas"],
             "start": row["Tanggal"].strftime("%Y-%m-%d"),
+            "allDay": True,
             "color": "#2ecc71" if row["Aktivitas"] == "Penanaman" else "#f1c40f"
-        }
-        for _, row in df_dashboard.iterrows()
-    ]
+        })
 
+    # =========================
+    # Render calendar
+    # =========================
     state = calendar(
         events=events,
         options={
@@ -23,18 +29,21 @@ def render_calendar(df_dashboard, tanggal_acuan):
                 "left": "",
                 "center": "title",
                 "right": ""
-            }
+            },
+            "fixedWeekCount": False
         },
         key="kalender"
     )
 
-    # 🔥 INI BAGIAN PENTING
-    if state.get("datesSet"):
-        new_date = pd.to_datetime(
-            state["datesSet"]["start"],
-            utc=True
-        ).tz_convert("Asia/Jakarta").date().replace(day=1)
+    # =========================
+    # Sinkron bulan kalender
+    # (PAKAI dateStr, BUKAN start UTC)
+    # =========================
+    if state and state.get("datesSet"):
+        start_date = pd.to_datetime(
+            state["datesSet"]["startStr"]
+        ).date().replace(day=1)
 
-        st.session_state["tanggal_acuan"] = new_date
+        st.session_state["tanggal_acuan"] = start_date
 
     return state
