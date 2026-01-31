@@ -5,8 +5,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# inject CSS
 with open("assets/style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.switch_page("pages/kalender.py")
+st.markdown("## 🌱 Kalender Tanam Singkong")
+st.caption("Silakan buka halaman **Kalender** melalui menu Pages.")
