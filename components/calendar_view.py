@@ -20,7 +20,7 @@ def render_calendar(df_dashboard, tanggal_acuan):
             "locale": "id",
             "height": 650,
             "headerToolbar": {
-                "left": ""
+                "left": "",
                 "center": "title",
                 "right": ""
             }
