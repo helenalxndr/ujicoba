@@ -27,13 +27,13 @@ st.caption("Prediksi waktu tanam berbasis LSTM dan data iklim")
 
 
 # ===============================
-# LOAD RESOURCE (CACHED)
+# LOAD RESOURCE
 # ===============================
 @st.cache_resource
 def load_resources():
     return load_all()
 
-df_all, model, scaler = load_resources()
+df_all, model = load_resources()
 
 
 # ===============================
