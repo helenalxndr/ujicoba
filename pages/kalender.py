@@ -52,7 +52,6 @@ if kecamatan is None or tanggal_acuan is None:
 df_dashboard = build_dashboard_df(
     df_all=df_all,
     model=model,
-    scaler=scaler,
     kecamatan=kecamatan,
     tanggal_acuan=tanggal_acuan
 )
