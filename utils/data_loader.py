@@ -9,6 +9,5 @@ def load_all():
     df["index"] = pd.to_datetime(df["index"])
 
     model = load_model("data/model_lstm.h5", compile=False)
-    scaler = joblib.load("data/scaler_rainfall.pkl")
 
-    return df, model, scaler
+    return df, model
