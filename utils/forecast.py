@@ -1,15 +1,12 @@
 import numpy as np
 import pandas as pd
 from utils.rbs import rbs_singkong_final
-from utils.scaler_loader import load_scaler
-
-WINDOW_SIZE = 30
 
 
 def forecast_lstm(model, last_window, n_days=30):
     """
-    Recursive forecasting menggunakan model LSTM.
-    Input harus dalam kondisi sudah di-scale.
+    Forecast curah hujan menggunakan model LSTM
+    dengan pendekatan recursive forecasting.
     """
 
     preds = []
@@ -17,7 +14,7 @@ def forecast_lstm(model, last_window, n_days=30):
 
     for _ in range(n_days):
         pred = model.predict(
-            window.reshape(1, WINDOW_SIZE, 1),
+            window.reshape(1, 30, 1),
             verbose=0
         )
         preds.append(pred[0, 0])
@@ -29,77 +26,59 @@ def forecast_lstm(model, last_window, n_days=30):
 def build_dashboard_df(
     df_all,
     model,
+    scaler,
     kecamatan,
     tanggal_acuan,
     n_days=30
 ):
     """
-    Menyusun dataframe final untuk dashboard kalender tanam.
-    Seluruh proses scaling dilakukan di sini.
+    Menyusun dataframe final untuk dashboard kalender.
     """
 
-    # ===============================
-    # LOAD SCALER PER KECAMATAN
-    # ===============================
-    scaler = load_scaler(kecamatan)
-
-    # ===============================
-    # FILTER DATA
-    # ===============================
+    # Filter kecamatan
     df_kec = (
         df_all[df_all["kecamatan"] == kecamatan]
         .sort_values("index")
     )
 
-    if len(df_kec) < WINDOW_SIZE:
-        return pd.DataFrame()
-
-    # ===============================
-    # AMBIL WINDOW TERAKHIR
-    # ===============================
-    last_window = (
+    # Ambil 30 hari terakhir
+    last_30 = (
         df_kec["curah_hujan_mm_corrected"]
-        .iloc[-WINDOW_SIZE:]
+        .iloc[-30:]
         .values
     )
 
-    # ===============================
-    # SCALING
-    # ===============================
-    last_scaled = scaler.transform(
-        last_window.reshape(-1, 1)
+    # Scaling
+    last_30_scaled = scaler.transform(
+        last_30.reshape(-1, 1)
     ).flatten()
 
-    # ===============================
-    # FORECAST
-    # ===============================
+    # Forecast
     pred_scaled = forecast_lstm(
         model,
-        last_scaled,
+        last_30_scaled,
         n_days
     )
 
-    # ===============================
-    # INVERSE SCALING
-    # ===============================
+    # Inverse scaling
     pred_mm = scaler.inverse_transform(
         pred_scaled.reshape(-1, 1)
     ).flatten()
 
-    # ===============================
-    # BUILD DATAFRAME
-    # ===============================
+    # Buat tanggal
     tanggal = pd.date_range(
         start=tanggal_acuan,
         periods=n_days,
         freq="D"
     )
 
+    # Dataframe dashboard
     df_dashboard = pd.DataFrame({
         "Tanggal": tanggal,
-        "Prediksi Hujan (mm)": pred_mm,
-        "HST": range(1, n_days + 1)
+        "Prediksi Hujan (mm)": pred_mm
     })
+
+    df_dashboard["HST"] = range(1, n_days + 1)
 
     df_dashboard["Aktivitas"] = df_dashboard.apply(
         lambda x: rbs_singkong_final(
