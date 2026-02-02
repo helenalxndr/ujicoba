@@ -27,13 +27,13 @@ st.caption("Prediksi waktu tanam berbasis LSTM dan data iklim")
 
 
 # ===============================
-# LOAD RESOURCE
+# LOAD RESOURCE (CACHED)
 # ===============================
 @st.cache_resource
 def load_resources():
     return load_all()
 
-df_all, model = load_resources()
+df_all, model, scaler = load_resources()
 
 
 # ===============================
@@ -52,6 +52,7 @@ if kecamatan is None or tanggal_acuan is None:
 df_dashboard = build_dashboard_df(
     df_all=df_all,
     model=model,
+    scaler=scaler,
     kecamatan=kecamatan,
     tanggal_acuan=tanggal_acuan
 )
@@ -86,4 +87,3 @@ with col_detail:
 # SUMMARY
 # ===============================
 render_summary(df_dashboard)
-
