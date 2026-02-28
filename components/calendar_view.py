@@ -21,8 +21,10 @@ def render_calendar(df_dashboard, tanggal_acuan):
             "selectable": True,     # 🔥 WAJIB
             "dateClick": True,      # 🔥 WAJIB
             "headerToolbar": {
-                "left": "",
+                "left": "prev,next today",
+                "left": ""
                 "center": "title",
+                "right": "dayGridMonth"
                 "right": ""
             }
         },
